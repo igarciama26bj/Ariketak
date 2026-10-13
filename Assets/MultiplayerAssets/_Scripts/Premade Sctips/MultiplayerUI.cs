@@ -35,6 +35,7 @@ public class MultiplayerUI : MonoBehaviour
         m_hostButton.SetEnabled(false);
         m_clientButton.SetEnabled(false);
         m_clientDisconnect.SetEnabled(true);
+        m_ipAddressField.SetEnabled(false);
     }
 
     public void EnableButtons()
@@ -42,6 +43,7 @@ public class MultiplayerUI : MonoBehaviour
         m_hostButton.SetEnabled(true);
         m_clientButton.SetEnabled(true);
         m_clientDisconnect.SetEnabled(false);
+        m_ipAddressField.SetEnabled(true);
     }
 
     public string GetIPAddress()
