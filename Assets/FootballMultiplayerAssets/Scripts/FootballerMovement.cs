@@ -13,7 +13,7 @@ public class FootballerMovement : NetworkBehaviour
     private InputAction moveAction;
     private InputAction shotAction;
     private Vector3 direction;
-    private bool shoting;
+    private float shoting;
 
     public override void OnNetworkSpawn()
     {
@@ -53,7 +53,7 @@ public class FootballerMovement : NetworkBehaviour
 
     private void ShotAction()
     {
-        shoting = shotAction.ReadValue<bool>();
+        shoting = shotAction.ReadValue<float>();
     }
 
     void FixedUpdate()
@@ -66,12 +66,12 @@ public class FootballerMovement : NetworkBehaviour
             transform.Translate(speed * Time.fixedDeltaTime * transform.forward, Space.World);
         }
 
-        shotCollider.gameObject.SetActive(shoting);
+        shotCollider.gameObject.SetActive(shoting == 1);
     }
 
-    void OnCollisionEnter(Collision collision)
+    void OnTriggerEnter(Collider other)
     {
-        GameObject gameObject = collision.gameObject;
+        GameObject gameObject = other.gameObject;
         if (gameObject.CompareTag("Ball") && gameObject.TryGetComponent(out Rigidbody rb))
         {
             Vector3 directionVector = (gameObject.transform.position - transform.position).normalized;

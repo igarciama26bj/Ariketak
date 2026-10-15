@@ -1,8 +1,10 @@
 using UnityEngine;
+using UnityEngine.Events;
 
 public class Gol : MonoBehaviour
 {
-    [SerializeField] private GameTeam team;
+    [SerializeField] private FootballTeam team;
+    public UnityEvent<FootballTeam> golEvent;
 
     void OnTriggerEnter(Collider other)
     {
@@ -11,7 +13,7 @@ public class Gol : MonoBehaviour
         {
             rb.linearVelocity = Vector3.zero;
             rb.angularVelocity = Vector3.zero;
-            ball.transform.position = new Vector3(0, 10, 0);
+            ball.transform.position = new Vector3(0, 5, 0);
         }
     }
 }
