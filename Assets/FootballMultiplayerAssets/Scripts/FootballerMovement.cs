@@ -1,3 +1,4 @@
+using System;
 using Unity.Cinemachine;
 using Unity.Netcode;
 using UnityEngine;
@@ -13,11 +14,12 @@ public class FootballerMovement : NetworkBehaviour
     private InputAction moveAction;
     private InputAction shotAction;
     private Vector3 direction;
-    private float shoting;
+    private readonly NetworkVariable<float> isShoting = new(0);
 
     public override void OnNetworkSpawn()
     {
         if (!IsOwner) return;
+        isShoting.OnValueChanged += OnShotingStateChanged;
 
         if (GameObject.FindGameObjectWithTag("GroupFollowCamera").TryGetComponent(out CinemachineTargetGroup ctg))
         {
@@ -26,6 +28,12 @@ public class FootballerMovement : NetworkBehaviour
         }
         moveAction = InputSystem.actions.FindAction("Move");
         shotAction = InputSystem.actions.FindAction("Shot");
+    }
+
+    public override void OnNetworkDespawn()
+    {
+        if (!IsOwner) return;
+        isShoting.OnValueChanged -= OnShotingStateChanged;
     }
 
     void Update()
@@ -53,7 +61,7 @@ public class FootballerMovement : NetworkBehaviour
 
     private void ShotAction()
     {
-        shoting = shotAction.ReadValue<float>();
+        isShoting.Value = shotAction.ReadValue<float>();
     }
 
     void FixedUpdate()
@@ -66,14 +74,18 @@ public class FootballerMovement : NetworkBehaviour
             transform.Translate(speed * Time.fixedDeltaTime * transform.forward, Space.World);
         }
 
-        shotCollider.gameObject.SetActive(shoting == 1);
+    }
+
+    private void OnShotingStateChanged(float previousValue, float newValue)
+    {
+        shotCollider.gameObject.SetActive(newValue == 1);
     }
 
     void OnTriggerEnter(Collider other)
     {
+        if (!IsOwner) return;
         GameObject gameObject = other.gameObject;
-        if (gameObject.CompareTag("Ball") && gameObject.TryGetComponent(out Rigidbody rb))
-        {
+        if (gameObject.CompareTag("Ball") && gameObject.TryGetComponent(out Rigidbody rb)) {
             Vector3 directionVector = (gameObject.transform.position - transform.position).normalized;
             rb.AddForce(directionVector * shotForce, ForceMode.Impulse);
         }
