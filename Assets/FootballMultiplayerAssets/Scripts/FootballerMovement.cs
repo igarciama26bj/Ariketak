@@ -14,12 +14,20 @@ public class FootballerMovement : NetworkBehaviour
     private InputAction moveAction;
     private InputAction shotAction;
     private Vector3 direction;
-    private readonly NetworkVariable<float> isShoting = new(0);
+
+    private readonly NetworkVariable<bool> isShooting = new(
+        false,
+        NetworkVariableReadPermission.Everyone,
+        NetworkVariableWritePermission.Server
+    );
+    private bool lastShotInput;
 
     public override void OnNetworkSpawn()
     {
+        isShooting.OnValueChanged += OnShootingChanged;
+        OnShootingChanged(false, isShooting.Value);
+
         if (!IsOwner) return;
-        isShoting.OnValueChanged += OnShotingStateChanged;
 
         if (GameObject.FindGameObjectWithTag("GroupFollowCamera").TryGetComponent(out CinemachineTargetGroup ctg))
         {
@@ -32,15 +40,26 @@ public class FootballerMovement : NetworkBehaviour
 
     public override void OnNetworkDespawn()
     {
-        if (!IsOwner) return;
-        isShoting.OnValueChanged -= OnShotingStateChanged;
+        isShooting.OnValueChanged -= OnShootingChanged;
     }
 
     void Update()
     {
         if (!IsOwner) return;
+
         MoveAction();
         ShotAction();
+    }
+
+    void FixedUpdate()
+    {
+        if (!IsOwner) return;
+
+        if (direction.magnitude > 0)
+        {
+            transform.rotation = Quaternion.LookRotation(direction);
+            transform.Translate(speed * Time.fixedDeltaTime * transform.forward, Space.World);
+        }
     }
 
     private void MoveAction()
@@ -61,29 +80,33 @@ public class FootballerMovement : NetworkBehaviour
 
     private void ShotAction()
     {
-        isShoting.Value = shotAction.ReadValue<float>();
+        bool currentShotInput = shotAction.IsPressed();
+
+        if (currentShotInput == lastShotInput)
+            return;
+
+        lastShotInput = currentShotInput;
+        RequestSetShootingRpc(currentShotInput);
     }
 
-    void FixedUpdate()
+    [Rpc(SendTo.Server)]
+    private void RequestSetShootingRpc(bool shooting, RpcParams rpcParams = default)
     {
-        if (!IsOwner) return;
+        if (rpcParams.Receive.SenderClientId != OwnerClientId)
+            return;
 
-        if (direction.magnitude > 0)
-        {
-            transform.rotation = Quaternion.LookRotation(direction);
-            transform.Translate(speed * Time.fixedDeltaTime * transform.forward, Space.World);
-        }
-
+        isShooting.Value = shooting;
     }
 
-    private void OnShotingStateChanged(float previousValue, float newValue)
+    private void OnShootingChanged(bool oldValue, bool newValue)
     {
-        shotCollider.gameObject.SetActive(newValue == 1);
+        shotCollider.gameObject.SetActive(newValue);
     }
 
     void OnTriggerEnter(Collider other)
     {
-        if (!IsOwner) return;
+        if (!IsServer || !isShooting.Value) return;
+        
         GameObject gameObject = other.gameObject;
         if (gameObject.CompareTag("Ball") && gameObject.TryGetComponent(out Rigidbody rb)) {
             Vector3 directionVector = (gameObject.transform.position - transform.position).normalized;
