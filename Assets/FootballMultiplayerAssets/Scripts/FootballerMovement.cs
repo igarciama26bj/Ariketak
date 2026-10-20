@@ -9,6 +9,7 @@ public class FootballerMovement : NetworkBehaviour
     private GameObject cameraReference;
     [SerializeField] private float speed;
     [SerializeField] private float shotForce;
+    [SerializeField] private float kickForce;
     [SerializeField] private Collider shotCollider;
 
     private InputAction moveAction;
@@ -34,6 +35,7 @@ public class FootballerMovement : NetworkBehaviour
             cameraReference = ctg.gameObject;
             ctg.AddMember(transform, 1, 0.5f);
         }
+        
         moveAction = InputSystem.actions.FindAction("Move");
         shotAction = InputSystem.actions.FindAction("Shot");
     }
@@ -57,7 +59,7 @@ public class FootballerMovement : NetworkBehaviour
 
         if (direction.magnitude > 0)
         {
-            transform.rotation = Quaternion.LookRotation(direction);
+            transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.LookRotation(direction), 0.2f);
             transform.Translate(speed * Time.fixedDeltaTime * transform.forward, Space.World);
         }
     }
@@ -111,6 +113,17 @@ public class FootballerMovement : NetworkBehaviour
         if (gameObject.CompareTag("Ball") && gameObject.TryGetComponent(out Rigidbody rb)) {
             Vector3 directionVector = (gameObject.transform.position - transform.position).normalized;
             rb.AddForce(directionVector * shotForce, ForceMode.Impulse);
+        }
+    }
+
+    void OnCollisionEnter(Collision collision)
+    {
+        if (!IsServer) return;
+
+        GameObject gameObject = collision.gameObject;
+        if (gameObject.CompareTag("Ball") && gameObject.TryGetComponent(out Rigidbody rb)) {
+            Vector3 directionVector = (gameObject.transform.position - transform.position).normalized;
+            rb.AddForce(directionVector * kickForce, ForceMode.Impulse);
         }
     }
 }

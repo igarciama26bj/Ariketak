@@ -1,21 +1,47 @@
 using TMPro;
+using Unity.Netcode;
 using UnityEngine;
 
-public class ScoreManager : MonoBehaviour
+public class ScoreManager : NetworkBehaviour
 {
-    private int blueScore, redScore;
+    private readonly NetworkVariable<int>
+        blueScore = new(0, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Server),
+        redScore = new(0, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Server);
+
     [SerializeField] private TMP_Text blueScoreText, redScoreText;
-    
-    public void IncreaseScore(FootballTeam team)
+
+    public override void OnNetworkSpawn()
+    {
+        blueScore.OnValueChanged += BlueScoreChanged;
+        redScore.OnValueChanged += RedScoreChanged;
+
+        BlueScoreChanged(blueScore.Value, blueScore.Value);
+        RedScoreChanged(redScore.Value, redScore.Value);
+    }
+
+    public void IncreaseScore(FootballTeam team) => RequestIncreaseScoreRpc(team);
+
+    [Rpc(SendTo.Server)]
+    private void RequestIncreaseScoreRpc(FootballTeam team, RpcParams rpcParams = default)
     {
         if (team == FootballTeam.Blue)
         {
-            blueScore++;
-            blueScoreText.SetText("", blueScore);
+            blueScore.Value++;
         } else if (team == FootballTeam.Red)
         {
-            redScore++;
-            redScoreText.SetText("", redScore);
+            redScore.Value++;
         }
+    }
+
+    private void BlueScoreChanged(int oldValue, int newValue)
+    {
+        Debug.Log(newValue);
+        blueScoreText.SetText("{0}", newValue);
+    }
+
+    private void RedScoreChanged(int oldValue, int newValue)
+    {
+        Debug.Log(newValue);
+        redScoreText.SetText("{0}", newValue);
     }
 }
