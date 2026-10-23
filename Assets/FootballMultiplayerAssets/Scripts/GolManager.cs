@@ -1,7 +1,8 @@
+using Unity.Netcode;
 using UnityEngine;
 using UnityEngine.Events;
 
-public class GolManager : MonoBehaviour
+public class GolManager : NetworkBehaviour
 {
     [SerializeField] private FootballTeam team;
     [SerializeField] private GameObject ballPrefab;
@@ -9,11 +10,17 @@ public class GolManager : MonoBehaviour
 
     void OnTriggerEnter(Collider other)
     {
+        if (!IsServer) return;
+
         GameObject ball = other.gameObject;
-        if (ball.CompareTag("Ball"))
+        if (ball.CompareTag("Ball") && ball.TryGetComponent(out NetworkObject netObj))
         {
-            Destroy(ball);
-            Instantiate(ballPrefab, new Vector3(0, 5f, 0), Quaternion.identity);
+            netObj.Despawn(true);
+            golEvent.Invoke(team);
+
+            GameObject newBall = Instantiate(ballPrefab);
+            newBall.GetComponent<NetworkObject>().Spawn();
+            newBall.GetComponent<Rigidbody>().isKinematic = false;
         }
     }
 }

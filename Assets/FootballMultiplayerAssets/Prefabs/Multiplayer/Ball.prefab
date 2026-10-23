@@ -33,7 +33,7 @@ Transform:
   m_GameObject: {fileID: 5247647344379602603}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 1, z: 0}
+  m_LocalPosition: {x: 0, y: 5, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -157,7 +157,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Unity.Netcode.Runtime::Unity.Netcode.NetworkObject
   GlobalObjectIdHash: 2418365887
-  InScenePlacedSourceGlobalObjectIdHash: 0
+  InScenePlacedSourceGlobalObjectIdHash: 2418365887
   m_InScenePlacedDisabledByDefault: 0
   DeferredDespawnTick: 0
   Ownership: 1
@@ -232,8 +232,8 @@ MonoBehaviour:
   ShowTopMostFoldoutHeaderGroup: 1
   NetworkRigidbodyBaseExpanded: 0
   UseRigidBodyForMotion: 1
-  AutoUpdateKinematicState: 0
-  AutoSetKinematicOnDespawn: 0
+  AutoUpdateKinematicState: 1
+  AutoSetKinematicOnDespawn: 1
 --- !u!114 &-2464708092964883304
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -246,4 +246,3 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0fcd6dfeb40d04846b183c6d662beef9, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::FindGroupCamera
-  ShowTopMostFoldoutHeaderGroup: 1

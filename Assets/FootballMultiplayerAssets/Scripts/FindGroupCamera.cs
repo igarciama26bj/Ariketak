@@ -1,10 +1,9 @@
 using Unity.Cinemachine;
-using Unity.Netcode;
 using UnityEngine;
 
-public class FindGroupCamera : NetworkBehaviour
+public class FindGroupCamera : MonoBehaviour
 {
-    public override void OnNetworkSpawn()
+    public void Start()
     {
         if (GameObject.FindGameObjectWithTag("GroupFollowCamera").TryGetComponent(out CinemachineTargetGroup ctg))
         {

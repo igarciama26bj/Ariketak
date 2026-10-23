@@ -35,13 +35,11 @@ public class ScoreManager : NetworkBehaviour
 
     private void BlueScoreChanged(int oldValue, int newValue)
     {
-        Debug.Log(newValue);
         blueScoreText.SetText("{0}", newValue);
     }
 
     private void RedScoreChanged(int oldValue, int newValue)
     {
-        Debug.Log(newValue);
         redScoreText.SetText("{0}", newValue);
     }
 }
